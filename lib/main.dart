@@ -62,18 +62,18 @@ class Recipe {
 
   factory Recipe.fromJson(Map<String, dynamic> json) {
     return Recipe(
-      name: json['name'],
-      ingredients: List<String>.from(json['ingredients']),
-      instructions: List<String>.from(json['instructions']),
-      prepTimeMinutes: json['prepTimeMinutes'],
-      cookTimeMinutes: json['cookTimeMinutes'],
-      servings: json['servings'],
-      difficulty: json['difficulty'],
-      cuisine: json['cuisine'],
-      caloriesPerServing: json['caloriesPerServing'],
-      image: json['image'],
-      rating: (json['rating']).toDouble(),
-      mealType: List<String>.from(json['mealType']),
+      name: json['name'] ?? '',
+      ingredients: List<String>.from(json['ingredients'] ?? []),
+      instructions: List<String>.from(json['instructions'] ?? []),
+      prepTimeMinutes: json['prepTimeMinutes'] ?? 0,
+      cookTimeMinutes: json['cookTimeMinutes'] ?? 0,
+      servings: json['servings'] ?? 0,
+      difficulty: json['difficulty'] ?? '',
+      cuisine: json['cuisine'] ?? '',
+      caloriesPerServing: json['caloriesPerServing'] ?? 0,
+      image: json['image'] ?? '',
+      rating: (json['rating'] ?? 0).toDouble(),
+      mealType: List<String>.from(json['mealType'] ?? []),
     );
   }
 }
@@ -103,7 +103,18 @@ class _RecipeHomeScreenState extends State<RecipeHomeScreen> {
     });
 
     try {
-      final response = await http.get(Uri.parse('https://dummyjson.com/recipes'));
+      final response = await http
+          .get(Uri.parse('https://dummyjson.com/recipes'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode != 200) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Unable to load recipes. Please try again.';
+        });
+        return;
+      }
+
       final data = jsonDecode(response.body);
       final List recipeList = data['recipes'];
 
